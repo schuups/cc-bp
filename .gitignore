@@ -1,0 +1,10 @@
+# Claude Code local settings — machine-specific, never commit
+.claude/settings.local.json
+
+# Environment and secrets — never commit
+.env
+.env.*
+*.secret
+*.key
+*.pem
+.DS_Store
