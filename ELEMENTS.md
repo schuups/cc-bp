@@ -16,7 +16,7 @@ Triggered by the user with `/name`. Claude executes the defined procedure.
 | ✅ | `/onboard` | Personalises the blueprint for the specific project: analyses the codebase, iterates until project purpose/goals/feature inventory are unambiguous, populates `.claude/knowledge/` (including `deferred.md` for backlog items); always run immediately after copying the blueprint |
 | ✅ | `/status` | Dashboard snapshot of project health: fidelity coverage, requirements counts, open findings, escalation ages, sweep recommendation; read-only, no files changed, runs automatically at session start |
 | ⬜ | `/checkpoint` | Creates a verified git commit: lightweight gate for spec-only changes (`.claude/` or spec files), full 7-check pre-commit gate for any source or test file change |
-| ⬜ | `/integrity` | Active structural audit that searches for specific problems: broken links, stale docs, unregistered TODOs, spec inconsistencies; run on demand, not a dashboard — it finds what is broken |
+| ✅ | `/integrity` | Active structural audit that searches for specific problems: broken links, stale docs, unregistered TODOs, spec inconsistencies; run on demand, not a dashboard — it finds what is broken |
 | ✅ | `/docs` | Rebuilds user-facing `documentation/` folder and root `README.md` from `.claude/knowledge/` |
 
 ---
