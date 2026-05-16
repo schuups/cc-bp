@@ -27,13 +27,14 @@ Ask only what Phases 1–2 did not resolve:
 
 ## Phase 4 — Populate Knowledge Files
 
-1. `.claude/knowledge/project-context.md` — purpose, users, constraints, dependencies, execution context
-2. `.claude/knowledge/requirements.md` — full functional requirements inventory with status (implemented / planned / deferred)
-3. `.claude/knowledge/architecture.md` — system boundaries, components, key decisions
-4. `.claude/knowledge/coding-guide.md` — language-specific rules
-5. `.claude/knowledge/deferred.md` — items explicitly identified as deferred
-6. `.claude/knowledge/adr/` — initialise with empty README
-7. Initialise remaining empty templates under `.claude/knowledge/specifications/`
+1. `.claude/knowledge/context/project-context.md` — purpose, users, constraints, dependencies, execution context
+2. `.claude/knowledge/context/requirements.md` — full functional requirements inventory with status (implemented / planned / deferred)
+3. `.claude/knowledge/context/invariants.md` — any invariants identifiable from requirements (may be empty)
+4. `.claude/knowledge/context/architecture.md` — system boundaries, components, key decisions
+5. `.claude/knowledge/coding-guide.md` — language-specific rules
+6. `.claude/knowledge/deferred.md` — items explicitly identified as deferred
+7. `.claude/knowledge/context/adr/` — initialise README if not present
+8. `.claude/knowledge/health/` — initialise empty template files if not present
 
 Show a summary and ask the user to confirm before finalising.
 

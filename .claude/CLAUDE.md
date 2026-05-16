@@ -207,7 +207,7 @@ Any `[ ]` is a blocker. State what is blocking and what must happen to clear it.
 
 ## Preconditions
 - User intent is stated (explicitly or confirmed after asking)
-- Read `.claude/knowledge/project-context.md` and `.claude/knowledge/architecture.md` — do this at the start of every Discover phase
+- Read `.claude/knowledge/context/project-context.md` and `.claude/knowledge/context/architecture.md` — do this at the start of every Discover phase
 - Relevant code, specs, and conversation context are available
 
 ## Binding Checklist
@@ -271,7 +271,7 @@ If any checklist item cannot be completed, stop. Do not continue with assumption
 - [ ] **Loopback check** — do any option's consequences reveal that the problem definition from the analyst output was incomplete or wrong? If yes, stop and return to Define phase before selecting
 - [ ] Select one option based on consequence/risk profile — not solely on elegance or speed
 - [ ] Identify any new invariants this design introduces (may be none; must be stated)
-- [ ] Draft the ADR entry using the template at `.claude/knowledge/adr/0001-template.md` — do not finalize until adversary gate clears
+- [ ] Draft the ADR entry using the template at `.claude/knowledge/context/adr/0001-template.md` — do not finalize until adversary gate clears
 
 ## Required Output
 

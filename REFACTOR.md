@@ -127,8 +127,8 @@ Personalises the blueprint for the specific project. Always run immediately afte
 - Any other project-specific constraints surfaced by analysis
 
 **Phase 3 — Populate knowledge files**:
-- Write/update `.claude/knowledge/project-context.md`
-- Write/update `.claude/knowledge/architecture.md`
+- Write/update `.claude/knowledge/context/project-context.md`
+- Write/update `.claude/knowledge/context/architecture.md`
 - Write `.claude/knowledge/coding-guide.md` (language-specific rules)
 - Initialise empty templates in `.claude/knowledge/specifications/`
 
@@ -259,6 +259,19 @@ When porting each command, mode, and role into `CLAUDE_NEXT.md`, explicitly stat
 
 ---
 
+### 🔴 R14. Verify that `adversary-findings.md` and `audit-log.md` are actually maintained in practice
+
+**Concern:** these files may be stale by design. The Adversary role is supposed to write to `adversary-findings.md` and the Auditor role to `audit-log.md`, but the role instructions in CLAUDE.md still reference the old `specs/findings.md`. Until the roles are ported to CLAUDE_NEXT.md with explicit file references, nothing reliably writes to these files.
+
+**Questions to answer before porting:**
+- Are the role instructions specific enough that Claude will reliably write to these files during Feature/Bugfix flows, or will it omit the step unless explicitly reminded?
+- Should the role definitions include a concrete append-format template (like `audit-log.md` already has) so the output is structured and checkable?
+- Is there a structural risk that both files accumulate entries but are never read — making them write-only logs that provide no value?
+
+**Action:** when porting Adversary and Auditor roles into CLAUDE_NEXT.md, verify the write step is explicit and test that it happens in practice before marking the roles as vetted.
+
+---
+
 ### 🔴 R6. Drift Prevention — make it visible
 
 Mechanisms already present: Sweep, AdvSweep, Integrity Audit, fidelity index, pre-commit gate.
@@ -338,6 +351,23 @@ The blueprint is a set of instructions that shapes Claude's behaviour. Testing i
 
 ---
 
+### 🔴 R13. Literature review step in the development process
+
+The development flow must include an optional but explicitly surfaced literature review step: before committing to a design, review what others have tried, what results they achieved, and what the current state of the art is.
+
+**Applicability:**
+- **Research projects**: essential — cannot responsibly design without knowing prior work
+- **General software**: valuable even for web development — surfaces new libraries, patterns, deprecations, and trends that challenge assumptions about what we "already know"
+- **Trivial tasks** (e.g. a single utility function): may be skipped, but the decision to skip must be explicit
+
+**Where it fits in the flow** (relative to R5 outer loop): between requirements clarification (step 2) and design (step 3). The literature review informs design options; it does not produce them.
+
+**Output and human involvement:** findings from the review must be presented to the user before design begins. The user decides how to act on them — Claude does not auto-incorporate findings into design choices. Results often require human judgement: a paper may describe a method that is theoretically superior but impractical given constraints.
+
+**TODO:** define the triggering condition (when to run vs skip), the scope of the review (academic papers, GitHub repos, docs, blog posts), and how findings are recorded in `.claude/knowledge/`.
+
+---
+
 ### 🔴 R11. Cleanup instructions — removing stale references, code, and deployments
 
 The blueprint must guide cleanup when things are removed or changed, not just when things are added. This covers:
@@ -346,6 +376,20 @@ The blueprint must guide cleanup when things are removed or changed, not just wh
 - Infrastructure that no longer applies (e.g. an ingress, a service, a deployment no longer needed)
 
 TODO: define how cleanup is triggered, what roles/modes are responsible, and what "done" looks like for a removal.
+
+---
+
+### 🔴 R15. Implement Sweep mode in CLAUDE_NEXT.md
+
+Sweep is listed as ⬜ PROPOSED in ELEMENTS.md but has no implementation file and is not referenced in CLAUDE_NEXT.md.
+
+Sweep is the primary mechanism for verifying that requirements and architecture are actually implemented as intended — the check that `/integrity` explicitly does not perform. Without it, there is no structured way to close the loop between specs and code.
+
+**Actions required:**
+- Port the Sweep mode protocol from CLAUDE.md into CLAUDE_NEXT.md, updated for the `.claude/knowledge/` path structure
+- Verify that `fidelity-index.md` template supports the checkpoint-per-item workflow described in the protocol
+- Consider whether Sweep warrants a `/sweep` command file, or whether intent-signal detection in CLAUDE_NEXT.md is sufficient
+- Mark Sweep as ✅ VETTED in ELEMENTS.md once ported and reviewed
 
 ---
 
