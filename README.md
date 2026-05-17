@@ -85,3 +85,51 @@ After onboarding, these files will be filled in:
 **Greenfield** (empty project): `/onboard` skips the codebase analysis phase and goes directly to questioning. Gate checks that require existing code (tests, auditor sign-off) are marked N/A until code exists.
 
 **Brownfield** (existing project): `/onboard` reads the codebase first — source files, package/config files, existing docs, git log — before asking questions, so it only asks what the analysis couldn't determine.
+
+---
+
+## Upgrading the blueprint
+
+The blueprint version is stored in `.claude/VERSION`. To check the version in a project that has already applied the blueprint:
+
+```bash
+cat /path/to/your-project/.claude/VERSION
+```
+
+To upgrade a project to a newer version of the blueprint:
+
+### Step 1 — Check versions
+
+```bash
+cat /path/to/your-project/.claude/VERSION   # installed version
+cat /path/to/cc-bp/.claude/VERSION          # latest version
+```
+
+If they match, no upgrade is needed.
+
+### Step 2 — Copy blueprint files
+
+Copy only the blueprint-managed files — do **not** overwrite your project's knowledge, logs, or settings:
+
+```bash
+PROJECT=/path/to/your-project
+BLUEPRINT=/path/to/cc-bp
+
+cp $BLUEPRINT/.claude/VERSION          $PROJECT/.claude/VERSION
+cp $BLUEPRINT/.claude/CLAUDE.md        $PROJECT/.claude/CLAUDE.md
+cp -r $BLUEPRINT/.claude/commands/     $PROJECT/.claude/commands/
+cp -r $BLUEPRINT/.claude/roles/        $PROJECT/.claude/roles/
+```
+
+### What to preserve
+
+| Path | Action |
+|------|--------|
+| `.claude/knowledge/` | **Preserve** — your project's requirements, architecture, ADRs, domain knowledge |
+| `.claude/logs/` | **Preserve** — your project's interaction, attack, audit, and map logs |
+| `.claude/settings.json` | **Preserve** — your project's permissions and hooks |
+| Root `CLAUDE.md` | **Preserve** — your project's context (filled in during onboarding) |
+
+### Step 3 — Review the changes
+
+Scan the diff for any command or role changes that affect ongoing work, then continue as normal.

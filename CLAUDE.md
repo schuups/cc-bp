@@ -11,5 +11,5 @@
 - Execution context: <!-- how and where the software runs -->
 - Key business constraints: <!-- regulatory, SLA, legacy compatibility, org mandates, budget -->
 - Non-obvious technical facts: <!-- third-party quirks, prod/dev differences, legacy limits, known gotchas -->
-- Explicitly out of scope: <!-- what this project intentionally does not do -->
+- Explicitly out of scope: <!-- what this PROJECT intentionally does not do — product and business boundaries, not technical ones. Examples: "does not support mobile platforms", "does not handle billing or payments", "English-only in v1". See architecture.md for what the system component does not own. -->
 - Open strategic questions: <!-- unresolved questions affecting project direction -->

@@ -13,6 +13,8 @@ This command commits only. Pushing to a remote is a separate, explicit action.
 If `.claude/commands/onboard.md` still exists: onboarding has not been completed.
 Stop and prompt the user to run `/onboard` first.
 
+**Urgency gate:** if the current urgency is `critical`, run `git diff --name-only` and state the files that will be committed and the nature of the change; wait for explicit user confirmation before proceeding to Step 1.
+
 ---
 
 ## Step 1 — Assess Working Tree
@@ -88,7 +90,14 @@ If the diff moves, renames, or deletes any file, directory, function, class, mod
 This includes semantic renames: if a function, class, or variable is renamed in the diff, grep the codebase for all callers using the old name and verify they have been updated.
 
 ### Check 6 — Auditor sign-off
-`.claude/logs/audit.md` must contain a PASS sign-off whose `HEAD:` field matches the current commit (`git rev-parse --short HEAD`), or that was written in the current session. A sign-off from a previous session with a different HEAD does not satisfy this check. If the result is FAIL: resolve all findings and re-run the auditor role before proceeding.
+Find the most recent PASS entry in `.claude/logs/audit.md`. Verify both fields against the current working tree:
+
+1. Run `git rev-parse --short HEAD` — must match the entry's `HEAD:` field.
+2. Run `git diff HEAD | shasum -a 256 | cut -c1-8` — must match the entry's `Diff:` field (or both must be `clean` if the working tree is clean).
+
+Both must match. If either differs, the working tree has changed since the audit was run — re-run `/ccbp:audit` before proceeding. If the result is FAIL: resolve all findings and re-run the auditor role before proceeding.
+
+Entries without a `Diff:` field are legacy format — treat as valid only if the working tree is clean (`git status --porcelain` returns nothing).
 
 ### Gate Report
 
@@ -108,7 +117,9 @@ Pre-commit gate:
 
 **Sensitive file check:** before staging, check every changed file's name against the list below. If any matches, stop — do not stage. Surface to the user: "Found what appears to be a sensitive file: `<file>`. Not staging. Please confirm how to handle it before proceeding."
 
-Sensitive patterns: `.env` `.env.*` `*.secret` `*.key` `*.pem` `*.p12` `*.pfx` `credentials.*` `secrets.*` `*_credentials.*` `*_secrets.*` `*.token` `auth.json` `config.local.*` `settings.local.*`
+Sensitive patterns: `.env` `.env.*` `*.secret` `*.key` `*.pem` `*.p12` `*.pfx` `*.p8` `credentials.*` `secrets.*` `*_credentials.*` `*_secrets.*` `*.token` `auth.json` `config.local.*` `settings.local.*` `id_rsa` `id_ed25519` `id_ecdsa` `id_dsa` `*.crt` `*.cer` `*.sqlite` `*.db` `*.dump` `gcreds.json` `application-prod.yml` `application-prod.yaml` `*-prod.yml` `*-prod.yaml`
+
+Note: this list is a heuristic, not exhaustive — use judgement for files not listed that appear to contain credentials, tokens, or PII.
 
 **Stage:**
 1. Stage each changed file by explicit name — never `git add .` or `git add -A`; list each file as it is staged
@@ -125,6 +136,19 @@ Propose the message and wait for user confirmation before committing.
 **After commit:**
 1. Run `git log --oneline -1` to verify
 2. State: `Checkpoint <hash> — roll back with git reset --hard <hash>`
+3. Clear `.claude/logs/interaction.md`: replace all content with:
+
+```
+# Interaction Log
+
+Records every decision and agreed intention. Cleared by `/checkpoint` (which adds `Previous commit: <hash>`). `/pause` appends a session summary.
+
+---
+
+Previous commit: <hash> — cleared N entries on YYYY-MM-DD HH:MM
+```
+
+Where N is the count of `##` section headings that existed before clearing, and `<hash>` matches the commit just made.
 
 ---
 

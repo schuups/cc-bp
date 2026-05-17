@@ -1,2 +1,0 @@
-- [Project Blueprint](project_blueprint.md) — cc-bp is the reusable .claude/ scaffolding blueprint itself; meta-work, not a product
-- [CLAUDE_NEXT.md rule](feedback_claude_next.md) — CLAUDE_NEXT.md is protected; never edit it without explicit user permission

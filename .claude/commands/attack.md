@@ -22,9 +22,29 @@ This command is intentionally thorough and will take time. Do not skip vectors, 
 
 ## Step 0 — Identify Target and Mode
 
-**Focused:** user names a specific artifact (design, ADR, file, function, architecture decision). Run all nine vectors against that artifact only.
+**Focused:** user names a specific artifact (design, ADR, file, function, architecture decision). Run all nine vectors against that artifact only. Proceed to Step 1 immediately.
 
-**Sweep:** no target given. Run all nine vectors across the codebase systematically.
+**Sweep:** no target given. Before proceeding, ask the user to define scope and stopping criterion:
+
+> "Sweep mode needs a scope to be useful. Please specify:
+>
+> **What to cover** — examples:
+> - `all` — every file in the project
+> - `source only` — source files, skip tests, docs, and config
+> - `high-risk` — authentication, data handling, external interfaces, and public APIs
+> - `changed` — files modified since the last attack run (or since a given commit)
+> - `<explicit list>` — name specific files, folders, or components
+>
+> **How deep to go** — examples:
+> - `exhaustive` — every file in scope, no skipping
+> - `representative` — one file per component or layer; flag if a component looks high-risk and warrants a focused pass
+> - `until N findings` — stop after N OPEN findings are recorded
+>
+> If unsure, `source only` + `exhaustive` is a safe default."
+
+Wait for the user's answer. Record the agreed scope and stopping criterion, then proceed to Step 1 applying them.
+
+**Urgency gate:** if the current urgency is `critical`, also state the agreed scope and stopping criterion and wait for explicit user confirmation before beginning Step 1.
 
 ---
 
@@ -51,32 +71,42 @@ For each active declination (`:ml-engineer`, `:devops-engineer`, etc.), also app
 ## Step 2 — Classify Each Finding
 
 Every finding must state:
+- **Status** — `OPEN` (default for all new findings) / `RESOLVED` / `ACCEPTED-RISK`
 - **Vector** — which of the nine
 - **Severity** — CRITICAL / HIGH / MEDIUM / LOW
 - **Description** — what is broken or exploitable
 - **Scenario** — a concrete exploit or failure path
-- **Mitigation hint** — direction only; not a design decision
+- **Mitigation hint** — names the category of fix, not the implementation. Example: "add rate limiting" is a valid hint; "use a Redis sorted set capped at 100 req/min per user" is a design decision and does not belong here. If the distinction is unclear, err on the side of less specificity.
 
 ---
 
 ## Step 3 — Gate Check
 
-If any CRITICAL findings exist: surface them immediately and stop. State explicitly: "No forward progress until these are resolved and `/attack` is re-run."
+If any `OPEN` CRITICAL findings exist: surface them immediately and stop. State explicitly: "No forward progress until these are resolved and `/attack` is re-run."
 
 ---
 
 ## Step 4 — Append to Log
 
-Append to `.claude/logs/attack.md`. Each entry supersedes all previous entries for the same target — the most recent entry per target is the authoritative open state.
+Append to `.claude/logs/attack.md`. The most recent entry per target is the authoritative state for all finding statuses.
+
+**Re-run behavior:** before writing the new entry, read the most recent existing entry for the same target. For each previously `OPEN` finding, determine whether it still applies:
+- Still present → carry it forward as `OPEN` (preserve the original ID)
+- No longer present → carry it forward as `RESOLVED`
+- Acknowledged risk not being fixed → carry it forward as `ACCEPTED-RISK`
+
+New findings discovered in this run receive new sequential IDs and Status `OPEN`.
 
 ```
 ## Attack — YYYY-MM-DD [target or "sweep"]
 
-Findings: N CRITICAL · N HIGH · N MEDIUM · N LOW
+HEAD: <git short hash — run `git rev-parse --short HEAD`>
+Open: N CRITICAL · N HIGH · N MEDIUM · N LOW
+Resolved this run: N  |  Accepted-risk: N
 
-| ID | Severity | Vector | Description | Scenario | Mitigation hint |
-|----|----------|--------|-------------|----------|-----------------|
-| ATK-NNN | ... | ... | ... | ... | ... |
+| ID | Status | Severity | Vector | Description | Scenario | Mitigation hint |
+|----|--------|----------|--------|-------------|----------|-----------------|
+| ATK-NNN | OPEN | ... | ... | ... | ... | ... |
 
 Vectors with no findings: <list>
 Vectors marked N/A: <list with reasons>
@@ -84,4 +114,4 @@ Vectors marked N/A: <list with reasons>
 
 IDs are sequential within the log (`ATK-001`, `ATK-002`, …). Use these IDs in `TODO` markers, ADRs, and resolution notes to cross-reference findings.
 
-Surface CRITICAL and HIGH findings to the user. Ask which to address next.
+Surface `OPEN` CRITICAL and HIGH findings to the user. Ask which to address next.

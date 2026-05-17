@@ -42,7 +42,7 @@ Produce a structured map covering:
 Overwrite `.claude/logs/map.md` with:
 
 ```
-## Project Map — YYYY-MM-DD
+## Project Map — YYYY-MM-DD HH:MM
 
 ### Components
 <name> — <purpose>
@@ -73,7 +73,7 @@ State: "Map written to `.claude/logs/map.md` — `<N>` components, `<N>` entry p
 
 Any command operating at `global` scope should run this check before proceeding:
 
-1. Read `.claude/logs/map.md`. Extract the date from `## Project Map — YYYY-MM-DD`.
+1. Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`.
 2. Run `git log -1 --format=%ci` to get the last commit timestamp.
 3. Evaluate:
    - **Map absent** → ⚠ "No project map found — run `/ccbp:map` before proceeding."

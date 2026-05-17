@@ -1,6 +1,6 @@
 # Command: /ccbp:audit
 
-Verify integrity: references valid, documentation consistent, implementation aligned with decisions. Also invocable inline ("audit this"). Findings appended to `.claude/logs/audit.md`; CRITICAL and HIGH findings surfaced to the user.
+Verify integrity: references valid, documentation consistent, implementation aligned with decisions and architecture. Also invocable inline ("audit this"). Findings appended to `.claude/logs/audit.md`; CRITICAL and HIGH findings surfaced to the user.
 
 This command is intentionally thorough and will take time. Do not skip checks, accept superficial passes, or mark items clean without verifying. Slowness is expected and correct.
 
@@ -26,9 +26,11 @@ This command is intentionally thorough and will take time. Do not skip checks, a
 | Condition | Reason | Next step |
 |-----------|--------|-----------|
 | `onboard.md` still exists in `.claude/commands/` | Knowledge files not yet populated; checks are meaningless | Run `/onboard` first |
-| `requirements.md` has no populated rows | Reference checks are meaningless without requirements | Complete `/onboard` or populate manually |
+| `requirements.md` has no row with non-empty requirement text (column 2 is blank on every row) | A template-only file makes reference checks meaningless | Complete `/onboard` or populate manually |
 
-**Map staleness check:** Read `.claude/logs/map.md`. Compare `## Project Map — YYYY-MM-DD` against `git log -1 --format=%ci`. If absent or older than the last commit: warn "Map may be stale — category checks may miss recently added or removed components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
+**Map staleness check:** Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp. If absent or older than the last commit: warn "Map may be stale — category checks may miss recently added or removed components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
+
+**Urgency gate:** if the current urgency is `critical`, state the scope of the audit (full or named scope) and wait for explicit user confirmation before beginning the category checks.
 
 Read `.claude/logs/audit.md` before starting to avoid duplicating already-open items.
 
@@ -41,6 +43,7 @@ Read `.claude/logs/audit.md` before starting to avoid duplicating already-open i
 | Markdown links in `.claude/knowledge/`, `documentation/`, root `*.md` | HIGH | Grep for `\[.*\]\(.*\.md\)`; verify each path exists |
 | ADR index complete — no ADR file missing a row, no row missing a file | MEDIUM | Cross-check `ls .claude/knowledge/adr/` against index rows |
 | ADR supersession chains valid — `Superseded by NNNN` target exists and has status `Accepted` | MEDIUM | Read ADRs with Superseded-by; verify the target |
+| Each accepted ADR has at least one grep-verifiable acceptance criterion (names a symbol, function, test, or config key) | MEDIUM | Read each ADR's Acceptance Criteria section; flag any where every criterion is purely narrative |
 
 ---
 
@@ -97,6 +100,7 @@ Append to `.claude/logs/audit.md`:
 
 Overall: PASS | FAIL
 HEAD: <git short hash — run `git rev-parse --short HEAD`>
+Diff: <run `git diff HEAD | shasum -a 256 | cut -c1-8`; write "clean" if output is empty>
 Findings: N CRITICAL · N HIGH · N MEDIUM · N LOW
 
 Cat 1 References:  <findings, or "clean">

@@ -6,6 +6,10 @@
 **MUST:** Read and reference the ADR before writing a line. Follow coding-guide conventions. Write tests first for bug fixes. Surface scope creep immediately — flag and stop.
 **MUST NOT:** Make architectural decisions. Expand scope beyond the ADR. Commit with failing tests or unregistered TODOs. Resolve design ambiguity unilaterally.
 
+**Micro vs. material — the boundary:**
+- **Authorized micro-decisions** (no re-entry needed): variable naming, method decomposition, local error-handling pattern, formatting, choosing between two equally-valid implementations of the same spec.
+- **Material changes** (stop — flag and return to `develop`): switching to a different library than the ADR named; changing the data model shape; altering a public API contract; adding a dependency not mentioned in the ADR; a schema change that affects other components. When in doubt, it is material.
+
 ## Output
 - Code changes per ADR
 - Updated or new tests (all passing)
