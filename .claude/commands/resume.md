@@ -1,0 +1,61 @@
+# Command: /ccbp:resume
+
+Read the latest session summary and restore full context before acting. Always run after a break; pairs with `/ccbp:pause`.
+
+---
+
+## Step 1 — Read the Pause Entry
+
+Read the most recent pause entry in `.claude/logs/interaction.md` — the last `## Session pause —` block.
+
+If no pause entry exists: note this and proceed to Step 2 using only the current file state.
+
+---
+
+## Step 2 — Restore State
+
+Set the state tuple from the pause entry:
+
+```
+Resuming:
+  interaction_mode: <value>
+  phase:            <value>
+  activity:         <value>
+  role:             <value>
+  scope:            <value>
+  urgency:          <value>
+```
+
+If any attribute is ambiguous or missing: ask the user before proceeding.
+
+---
+
+## Step 3 — Verify Current File State
+
+Read the files relevant to the paused work:
+- Any source files mentioned in the pause summary
+- `.claude/knowledge/requirements.md` — confirm requirements status unchanged
+- `.claude/logs/attack.md` and `.claude/logs/audit.md` — confirm no new open findings since pause
+
+Flag any divergence between the pause summary and current file state.
+
+---
+
+## Step 4 — Surface Resumption Brief
+
+State:
+
+```
+Resuming from: YYYY-MM-DD HH:MM
+State: [interaction_mode, phase, activity, role, scope, urgency]
+
+Was in progress: <one sentence>
+Done: <list>
+Still to do: <list>
+Open questions: <list, or "none">
+Divergence since pause: <list, or "none">
+
+Ready to continue with: <next action>
+```
+
+Wait for the user to confirm before acting.

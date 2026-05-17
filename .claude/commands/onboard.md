@@ -27,21 +27,23 @@ Ask only what Phases 1–2 did not resolve:
 
 ## Phase 4 — Populate Knowledge Files
 
-1. `.claude/knowledge/context/project-context.md` — purpose, users, constraints, dependencies, execution context
-2. `.claude/knowledge/context/requirements.md` — full functional requirements inventory with status (implemented / planned / deferred)
-3. `.claude/knowledge/context/invariants.md` — any invariants identifiable from requirements (may be empty)
-4. `.claude/knowledge/context/architecture.md` — system boundaries, components, key decisions
-5. `.claude/knowledge/coding-guide.md` — language-specific rules
-6. `.claude/knowledge/deferred.md` — items explicitly identified as deferred
-7. `.claude/knowledge/context/adr/` — initialise README if not present
-8. `.claude/knowledge/health/` — initialise empty template files if not present
+The root `CLAUDE.md` Project Context template is a starting point, not a fixed contract. During onboarding, adapt the fields to fit the project — add fields that matter, remove ones that don't apply, rename for clarity. The goal is a Project Context that a future Claude session can rely on, not one that matches a template exactly.
+
+1. Root `CLAUDE.md` — fill in (and adapt) the **Project Context** section; at minimum: Vision, Description, Success criteria, Stakeholders, Technologies, Execution context, Key business constraints, Explicitly out of scope
+2. `.claude/knowledge/requirements.md` — full functional requirements inventory with status (implemented / planned / deferred)
+3. `.claude/knowledge/architecture.md` — system boundaries, components, key decisions
+4. `.claude/knowledge/coding-guide.md` — language-specific rules
+5. `.claude/knowledge/backlog.md` — items explicitly identified as deferred
+6. `.claude/knowledge/domain.md` — domain knowledge captured during discovery (may be sparse initially)
+7. `.claude/knowledge/adr/` — initialise INDEX.md if not present
 
 Show a summary and ask the user to confirm before finalising.
 
 ## Phase 5 — Self-Cleanup
 
 Once the user confirms onboarding is complete:
-1. Remove the `/onboard` row from the Commands table in `.claude/CLAUDE_NEXT.md`
-2. Delete this file: `.claude/commands/onboard.md`
+1. Remove the `/ccbp:onboard` row from the Utility Commands table in `.claude/CLAUDE.md`
+2. Remove the `/onboard` line from the Command Triggers section in `.claude/CLAUDE.md`
+3. Delete this file: `.claude/commands/onboard.md`
 
-This command is single-use. Removing it prevents it from loading into context in every future session.
+This command is single-use. Once these three steps are done, no trace of onboarding remains in the blueprint. The presence of this file is the canonical signal that onboarding has not yet run — its absence means onboarding is complete.
