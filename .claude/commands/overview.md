@@ -13,7 +13,7 @@ Stop and prompt the user to run `/onboard` before proceeding.
 
 ## Step 1 — Map Staleness
 
-Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`.
+Read `.claude/knowledge/project-map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`.
 Compare against `git log -1 --format=%ci` (last commit timestamp). The map is stale if its datetime is earlier than the last commit timestamp.
 
 - **Map absent** → record: `Map: MISSING — run /ccbp:map`
@@ -26,7 +26,7 @@ Do not block; surface the status in the report and recommend a refresh if stale.
 
 ## Step 2 — Log Freshness
 
-Read `.claude/logs/interaction.md`:
+Read `.claude/knowledge/interaction-log.md`:
 - Are there uncommitted decisions or pending intentions not yet captured in a git commit?
 - Flag any entries referencing work not yet checkpointed.
 - **Size check:** count `##` section headings. If > 30: record `interaction.md OVER LIMIT (N entries)`.
@@ -45,7 +45,7 @@ Read `.claude/knowledge/requirements.md`:
 
 **Staleness thresholds:** warn if the most recent entry is older than **30 days** OR if more than **10 commits** have been made since the `HEAD:` hash recorded in that entry. Either condition alone is sufficient to trigger a warning.
 
-Read `.claude/logs/attack.md`:
+Read `.claude/knowledge/attack-log.md`:
 - If the file has no entries: record `Attack log: NEVER RUN — run /ccbp:attack`
 - Otherwise, find the most recent `## Attack —` entry overall (any target):
   - Extract the date from the section header
@@ -58,13 +58,15 @@ Read `.claude/logs/attack.md`:
 - Do not count `RESOLVED` or `ACCEPTED-RISK` rows
 - **Size check:** count `## Attack —` section headings. If > 30: record `attack.md OVER LIMIT (N entries)`.
 
-Read `.claude/logs/audit.md`:
+Read `.claude/knowledge/audit-log.md`:
 - If the file has no entries: record `Audit log: NEVER RUN — run /ccbp:audit`
 - Otherwise, find the most recent `## Audit —` entry:
   - Extract the date and `HEAD:` hash; apply staleness thresholds; record one of:
     - `Audit log: STALE (N days old) — run /ccbp:audit`
     - `Audit log: STALE (N commits since last run) — run /ccbp:audit`
     - `Audit log: DATE · HEAD <hash>` (up to date)
+  - Extract the `Fidelity:` line if present; record the counts (THOROUGH / MODERATE / SHALLOW / STUB / NONE)
+  - If any NONE or STUB components are present, flag them
 - Note any `Overall: FAIL` entry that has no subsequent `Overall: PASS` entry with the same scope
 - **Size check:** count `## Audit —` section headings. If > 30: record `audit.md OVER LIMIT (N entries)`.
 
@@ -91,6 +93,7 @@ Check `.claude/knowledge/adr/` for any ADRs with status `Proposed` — decisions
 Map:                  DATE [or STALE / MISSING — run /ccbp:map]
 Attack log:           DATE · HEAD <hash> [or STALE / NEVER RUN — run /ccbp:attack]
 Audit log:            DATE · HEAD <hash> [or STALE / NEVER RUN — run /ccbp:audit]
+Fidelity:             N THOROUGH · N MODERATE · N SHALLOW · N STUB · N NONE [or "not yet rated"]
 Pending log entries:  N  [or "none — log is clean"]
 Requirements:         N implemented · N planned · N deferred · N ambiguous
 Open findings:        N CRITICAL · N HIGH · N MEDIUM

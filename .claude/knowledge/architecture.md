@@ -81,6 +81,30 @@ Non-obvious choices. For full decision records see `.claude/knowledge/adr/INDEX.
 
 ---
 
+## Failure Modes
+
+> How each component fails, its blast radius, and degradation behaviour. Produced by the `analyst` role during inception (systemic and domain-level failures) and refined by the `architect` role (component-level isolation). Consumers: `attacker` (stress-tests these scenarios), `auditor` (verifies handling exists), `integrator` (checks blast radius across boundaries).
+
+| Component | Failure mode | Trigger | Blast radius | Degradation behaviour |
+|-----------|-------------|---------|-------------|----------------------|
+|           |             |         |             |                      |
+
+---
+
+## Architectural Invariants
+
+> Structural rules that must always hold regardless of implementation approach. Unlike domain invariants (business rules, in `requirements.md`), these constrain *how* the system is built — component boundaries, data flow direction, layer rules.
+>
+> **Producers:** `architect` role. **Consumers:** `auditor` (verifies enforcement points exist), `/ccbp:checkpoint` Check 4, `attacker` (checks for violations).
+>
+> **Enforcement point:** must be grep-verifiable — a symbol, test name, middleware, or infra rule. "validated in `UserService.create()`" is valid; "validated at creation time" is not.
+
+| ID | Invariant | Testable assertion | Enforcement point |
+|----|-----------|-------------------|-------------------|
+|    |           |                   |                   |
+
+---
+
 ## Cross-cutting Concerns
 
 | Concern | Current approach |
@@ -90,3 +114,13 @@ Non-obvious choices. For full decision records see `.claude/knowledge/adr/INDEX.
 | Logging | |
 | Error handling | |
 | Feature flags | |
+
+---
+
+## Datasets
+
+> *(ML/data projects)* Populated by `analyst:ml-engineer` during inception; updated by `architect:ml-engineer` as dataset decisions are made. Each row is a versioned dataset used in training, evaluation, or inference. Remove rows when a dataset is retired. See `knowledge/experiments.md` for how datasets are used in each experiment run.
+
+| Name | Source | Version / date | License | Train / val / test split | Preprocessing pipeline | Known biases or limitations |
+|------|--------|----------------|---------|--------------------------|------------------------|-----------------------------|
+|      |        |                |         |                          |                        |                             |

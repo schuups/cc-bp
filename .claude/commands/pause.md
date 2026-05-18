@@ -33,7 +33,7 @@ Write a brief summary covering:
 
 ## Step 3 — Append to Interaction Log
 
-Append to `.claude/logs/interaction.md`:
+Append to `.claude/knowledge/interaction-log.md`:
 
 ```
 ## Session pause — YYYY-MM-DD HH:MM
@@ -51,4 +51,4 @@ Next action: <one sentence>
 
 ## Step 4 — Confirm
 
-State: "Session state saved to `.claude/logs/interaction.md`. Resume with `/ccbp:resume`."
+State: "Session state saved to `.claude/knowledge/interaction-log.md`. Resume with `/ccbp:resume`."

@@ -1,6 +1,6 @@
 # Command: /ccbp:audit
 
-Verify integrity: references valid, documentation consistent, implementation aligned with decisions and architecture. Also invocable inline ("audit this"). Findings appended to `.claude/logs/audit.md`; CRITICAL and HIGH findings surfaced to the user.
+Verify integrity: references valid, documentation consistent, implementation aligned with decisions and architecture. Also invocable inline ("audit this"). Findings appended to `.claude/knowledge/audit-log.md`; CRITICAL and HIGH findings surfaced to the user.
 
 This command is intentionally thorough and will take time. Do not skip checks, accept superficial passes, or mark items clean without verifying. Slowness is expected and correct.
 
@@ -28,11 +28,11 @@ This command is intentionally thorough and will take time. Do not skip checks, a
 | `onboard.md` still exists in `.claude/commands/` | Knowledge files not yet populated; checks are meaningless | Run `/onboard` first |
 | `requirements.md` has no row with non-empty requirement text (column 2 is blank on every row) | A template-only file makes reference checks meaningless | Complete `/onboard` or populate manually |
 
-**Map staleness check:** Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp. If absent or older than the last commit: warn "Map may be stale — category checks may miss recently added or removed components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
+**Map staleness check:** Read `.claude/knowledge/project-map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp. If absent or older than the last commit: warn "Map may be stale — category checks may miss recently added or removed components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
 
 **Urgency gate:** if the current urgency is `critical`, state the scope of the audit (full or named scope) and wait for explicit user confirmation before beginning the category checks.
 
-Read `.claude/logs/audit.md` before starting to avoid duplicating already-open items.
+Read `.claude/knowledge/audit-log.md` before starting to avoid duplicating already-open items.
 
 ---
 
@@ -51,11 +51,28 @@ Read `.claude/logs/audit.md` before starting to avoid duplicating already-open i
 
 | Check | Severity | How |
 |-------|----------|-----|
-| `TODO` / `FIXME` / `HACK` in source without an open entry in `.claude/logs/attack.md` | MEDIUM | Grep source files; cross-reference |
-| Skipped or `xfail` tests without an open entry in `.claude/logs/attack.md` | MEDIUM | Grep for `@pytest.mark.skip`, `test.skip`, `xit(`, `t.Skip`, `pending(` |
+| `TODO` / `FIXME` / `HACK` in source without an open entry in `.claude/knowledge/attack-log.md` | MEDIUM | Grep source files; cross-reference |
+| Skipped or `xfail` tests without an open entry in `.claude/knowledge/attack-log.md` | MEDIUM | Grep for `@pytest.mark.skip`, `test.skip`, `xit(`, `t.Skip`, `pending(` |
 | Debug instrumentation left in source (`console.log`, `print(`, `debugger`, `binding.pry`, `fmt.Println`) | HIGH | Grep source files |
 | Stub implementations (`raise NotImplementedError`, `panic("not implemented")`) without findings entry | MEDIUM | Grep source files; cross-reference |
 | Real PII in test fixtures, seed data, or documentation examples (real names, emails, phone numbers, addresses) | CRITICAL | Grep test and seed files for patterns resembling real personal data; use synthetic data only (`user@example.com`, `+1-555-0100`) |
+
+---
+
+## Category 2b — Test Depth and Mock Fidelity
+
+For every component touched by the current scope (or all components if running a full audit), read the actual test assertions — do not infer depth from test count or pass/fail status.
+
+**Test depth:** assign NONE / STUB / SHALLOW / MODERATE / THOROUGH per component. Definitions in `roles/auditor.md`.
+
+**Mock fidelity:** for each mock in scope, assign FAITHFUL / PARTIAL / DIVERGENT. A DIVERGENT mock is a HIGH finding regardless of whether tests pass.
+
+Produce a fidelity table:
+
+| Component | Test depth | Mock fidelity | Notes |
+|-----------|-----------|---------------|-------|
+
+SHALLOW or below in any changed component: surface as a risk in the report (not necessarily a blocker, but must be visible). NONE in a changed component: surface as HIGH.
 
 ---
 
@@ -76,6 +93,9 @@ Read `.claude/logs/audit.md` before starting to avoid duplicating already-open i
 |-------|----------|-----|
 | No ADRs with status `Proposed` older than 14 days | LOW | Read each ADR; check date and status |
 | `requirements.md` has no ambiguous or contradictory entries | MEDIUM | Read requirements; flag unclear scope or conflicting items |
+| Domain invariants in `requirements.md` each have a verifiable condition and a status | MEDIUM | Read Domain Invariants table; flag any row with empty verifiable condition or status `untested` in changed scope |
+| Architectural invariants in `architecture.md` each have a grep-verifiable enforcement point | HIGH | Read Architectural Invariants table; grep for each enforcement point symbol; flag missing or unreachable points |
+| Domain vocabulary drift — if root `CLAUDE.md` contains a `## Domain Vocabulary` section | MEDIUM | For each row in the table, grep source files for any term in the "Must not use" column; flag each hit with the file and line |
 | `backlog.md` entries are still relevant — none silently implemented or superseded | LOW | Read backlog; cross-check against current state |
 
 ---
@@ -84,8 +104,8 @@ Read `.claude/logs/audit.md` before starting to avoid duplicating already-open i
 
 Informational only — not blocking, but must appear in the report.
 
-- `.claude/logs/attack.md`: for each distinct target, read the most recent `## Attack —` entry; count its findings by severity (CRITICAL / HIGH / MEDIUM); flag any entry dated more than 30 days ago
-- `.claude/logs/audit.md`: flag any FAIL sign-off that has no subsequent PASS for the same scope
+- `.claude/knowledge/attack-log.md`: for each distinct target, read the most recent `## Attack —` entry; count its findings by severity (CRITICAL / HIGH / MEDIUM); flag any entry dated more than 30 days ago
+- `.claude/knowledge/audit-log.md`: flag any FAIL sign-off that has no subsequent PASS for the same scope
 - `.claude/knowledge/backlog.md`: count entries; flag any whose deferral condition is now met
 - `.claude/knowledge/adr/`: count ADRs with status `Proposed`
 
@@ -93,7 +113,7 @@ Informational only — not blocking, but must appear in the report.
 
 ## Report Format
 
-Append to `.claude/logs/audit.md`:
+Append to `.claude/knowledge/audit-log.md`:
 
 ```
 ## Audit — YYYY-MM-DD [scope or "full"]
@@ -102,9 +122,12 @@ Overall: PASS | FAIL
 HEAD: <git short hash — run `git rev-parse --short HEAD`>
 Diff: <run `git diff HEAD | shasum -a 256 | cut -c1-8`; write "clean" if output is empty>
 Findings: N CRITICAL · N HIGH · N MEDIUM · N LOW
+Fidelity: N THOROUGH · N MODERATE · N SHALLOW · N STUB · N NONE
+Mocks:    N FAITHFUL · N PARTIAL · N DIVERGENT
 
 Cat 1 References:  <findings, or "clean">
 Cat 2 Work items:  <findings, or "clean">
+Cat 2b Fidelity:   <fidelity table, or "not applicable — no tests in scope">
 Cat 3 Docs:        <findings, or "clean">
 Cat 4 Specs:       <findings, or "clean">
 Cat 5 Triage:      N open findings · N unresolved FAIL sign-offs · N backlog activate-now · N proposed ADRs

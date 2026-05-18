@@ -39,7 +39,7 @@ Produce a structured map covering:
 
 ## Step 3 — Write to Log
 
-Overwrite `.claude/logs/map.md` with:
+Overwrite `.claude/knowledge/project-map.md` with:
 
 ```
 ## Project Map — YYYY-MM-DD HH:MM
@@ -65,7 +65,7 @@ Overwrite `.claude/logs/map.md` with:
 
 ## Step 4 — Report
 
-State: "Map written to `.claude/logs/map.md` — `<N>` components, `<N>` entry points." Flag any alignment gaps and ask whether to update `architecture.md`.
+State: "Map written to `.claude/knowledge/project-map.md` — `<N>` components, `<N>` entry points." Flag any alignment gaps and ask whether to update `architecture.md`.
 
 ---
 
@@ -73,7 +73,7 @@ State: "Map written to `.claude/logs/map.md` — `<N>` components, `<N>` entry p
 
 Any command operating at `global` scope should run this check before proceeding:
 
-1. Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`.
+1. Read `.claude/knowledge/project-map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`.
 2. Run `git log -1 --format=%ci` to get the last commit timestamp.
 3. Evaluate:
    - **Map absent** → ⚠ "No project map found — run `/ccbp:map` before proceeding."

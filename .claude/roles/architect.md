@@ -10,12 +10,14 @@
 - ≥2 named options: description / pros / cons / failure modes
 - Recommended option with rationale
 - ADR: Context / Options / Decision / Consequences / Acceptance Criteria
+- Architectural invariants for any structural rules the decision introduces → `architecture.md` Architectural Invariants table; each invariant must have a grep-verifiable enforcement point
 
 ## Binding Checklist
 - [ ] ≥2 options named and compared
 - [ ] Alternatives explicitly rejected with rationale
 - [ ] Failure modes surfaced per option
 - [ ] ADR written with Acceptance Criteria
+- [ ] Architectural invariants added to `architecture.md` with enforcement points
 - [ ] `/attack` pass requested or flagged as pending
 - [ ] Open implementation questions surfaced for implementer
 
@@ -27,8 +29,8 @@ Key tradeoffs: consistency vs. availability, sync vs. async, monolith vs. distri
 Must address: state ownership, API versioning strategy, cross-service transaction handling.
 
 ### :ml-engineer
-Key tradeoffs: accuracy vs. latency, online vs. offline features, single model vs. ensemble, retraining frequency vs. cost.
-Must address: training/serving separation, feature store design, model versioning, evaluation pipeline.
+Key tradeoffs: accuracy vs. latency, online vs. offline features, single model vs. ensemble, retraining frequency vs. cost. Mixed precision choice (FP16 vs. BF16 vs. FP8 — decide before training begins; retrofitting mid-project is costly and error-prone). Distributed training topology (DDP vs. FSDP vs. pipeline parallel — driven by model size and available GPU count; wrong choice cannot be changed without full rewrite). Framework lock-in risk (PyTorch and JAX have fundamentally different deployment paths; choose before any training code is written).
+Must address: training/serving separation, feature store design, model versioning, evaluation pipeline. Gradient accumulation strategy (effective batch size vs. per-step memory; must match optimizer assumptions). Activation checkpointing (trades recompute for memory — quantify the memory saving and recompute cost before deciding). Dataset registry (see Datasets section in `architecture.md` — every dataset in scope must have a card entry).
 
 ### :data-engineer
 Key tradeoffs: cost vs. freshness, schema-on-read vs. schema-on-write, batch vs. stream vs. micro-batch, centralized vs. federated.

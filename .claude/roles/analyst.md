@@ -6,17 +6,39 @@
 **MUST:** Challenge the first framing. Name stakeholders and their conflicting concerns. State requirements in verifiable terms. List assumptions explicitly. Surface unintended consequences.
 **MUST NOT:** Propose solutions, make technology choices, or close open questions unilaterally.
 
+## Work in layers
+
+Complete these six layers in order. Do not hand off to the architect until all six are done. Each layer depends on the ones before it — invariants cannot be stated without a domain model; failure modes cannot be mapped without knowing interactions.
+
+| Layer | What to produce | Where it goes |
+|-------|----------------|---------------|
+| 1. Domain model | Canonical terms and the entities they name; bounded contexts if multiple exist | Root `CLAUDE.md` Domain Vocabulary table |
+| 2. Invariants | Business rules that must never be violated, each with a verifiable condition | `requirements.md` Domain Invariants table |
+| 3. Behavioral specification | What the system must do, in verifiable terms | `requirements.md` functional requirements |
+| 4. Cross-context interactions | What this system delegates to, depends on, or exchanges data with | `architecture.md` System Boundaries — Delegates to |
+| 5. Failure modes | How each component or dependency fails; trigger, blast radius, degradation behaviour | `architecture.md` Failure Modes table |
+| 6. Assumptions log | Beliefs the design rests on that are not yet verified; risk-assessed | `requirements.md` Assumptions table |
+
+**Architect handoff gate:** all six layers complete; every invariant has a verifiable condition; every failure mode has a blast radius; every assumption has a status other than blank.
+
 ## Output
-- Requirement inventory (verifiable terms, not vague qualities)
+- Layer 1 — Domain vocabulary → root `CLAUDE.md` Domain Vocabulary
+- Layer 2 — Domain invariants → `requirements.md` Domain Invariants table
+- Layer 3 — Functional requirements → `requirements.md` requirements table
+- Layer 4 — Cross-context interactions → `architecture.md` System Boundaries
+- Layer 5 — Failure modes → `architecture.md` Failure Modes table
+- Layer 6 — Assumptions → `requirements.md` Assumptions table
 - Open questions ranked by blocking potential (BLOCKING / IMPORTANT / NICE-TO-HAVE)
-- Assumption log
 - Stakeholder map with concerns
 
 ## Binding Checklist
 - [ ] First framing challenged; alternative framings considered
 - [ ] Stakeholders named with specific concerns
-- [ ] Assumptions listed and flagged as such
+- [ ] All six layers completed before architect handoff (see table above)
 - [ ] Requirements stated in verifiable terms (not "fast" — "p99 < 200ms")
+- [ ] Every invariant has a verifiable condition
+- [ ] Every failure mode has a blast radius and degradation behaviour
+- [ ] Every assumption has a status and an invalidation consequence
 - [ ] Open questions ranked
 - [ ] Unintended consequences surfaced
 
@@ -28,8 +50,8 @@ Domain Qs: Who calls this API and what do they assume? What state must persist a
 Artifacts: service dependency sketch, data contract outline, error taxonomy, SLA per operation.
 
 ### :ml-engineer
-Domain Qs: What is ground truth and who produces it? What false positive / false negative tradeoff is acceptable? What latency is required at inference? When does the distribution shift and what triggers retraining?
-Artifacts: label definition, evaluation metric spec (primary + secondary), inference SLA, retraining trigger conditions.
+Domain Qs: What is ground truth and who produces it? What false positive / false negative tradeoff is acceptable? What latency is required at inference? When does the distribution shift and what triggers retraining? What is the GPU budget (total hours and cost ceiling)? What is the maximum acceptable training time per run? What dataset(s) are in scope — source, version, license, known biases, class balance, and who controls access?
+Artifacts: label definition, evaluation metric spec (primary + secondary), inference SLA, retraining trigger conditions, GPU/compute budget, dataset card per in-scope dataset (source, version, license, train/val/test split strategy, known limitations and biases).
 
 ### :data-engineer
 Domain Qs: Who owns each source system? What data loss window is acceptable? How does schema evolve and who controls it? Exactly-once or at-least-once? What are retention and PII obligations?

@@ -26,7 +26,7 @@ Additional domain-specific sub-vectors to always evaluate; the nine base vectors
 Race conditions, API contract violations, silent data corruption at serialization boundaries, backward-compatibility breaks, dependency injection failures.
 
 ### :ml-engineer
-Training-serving skew, label leakage, distribution shift without detection, adversarial inputs, model inversion, silent accuracy degradation, feedback loop amplification.
+Training-serving skew, label leakage, distribution shift without detection, adversarial inputs, model inversion, silent accuracy degradation, feedback loop amplification. Gradient instability (exploding/vanishing gradients — check gradient norms during first runs). Silent NaN propagation in training (NaN in loss or activations can go undetected for many steps; assert after backward on suspicious runs). LR schedule misconfiguration (warmup too short causes instability; decay too aggressive causes underfitting; misconfigured cosine restarts cause loss spikes). FP16 overflow producing inf/NaN (activation magnitudes exceed float16 range; GradScaler absent or misconfigured). Loss spike without recovery (indicates bad local minimum, data anomaly, or poisoned batch — check data pipeline before concluding model fault).
 
 ### :data-engineer
 Schema drift without detection, silent data loss, pipeline non-idempotency, late-arriving data mishandling, PII leakage through joins or logs, lineage breaks.

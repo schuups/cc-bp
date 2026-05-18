@@ -55,20 +55,22 @@ Commit format: `spec: <imperative description>`
 
 Run all six checks. Produce the gate report before committing. Any `[ ]` is a blocker — state what must happen to clear it and stop.
 
+**Test tier at commit:** checkpoint enforces the **slow tier** minimum — unit tests + integration tests + linter + type check. The **full tier** (E2E, live-endpoint, long-running load tests) is required pre-merge, not necessarily pre-commit. The **fast tier** (unit tests only) is for between-edit feedback during implementation and is not a checkpoint gate. Specific commands for each tier go in the project's root `CLAUDE.md`; if not defined there, run everything available.
+
 ### Check 1 — Tests pass
-Run the full test suite now. Required: zero failing tests; zero skipped or `xfail` tests without an open entry in `.claude/logs/attack.md`.
+Run the full test suite now (slow tier minimum — see above). Required: zero failing tests; zero skipped or `xfail` tests without an open entry in `.claude/knowledge/attack-log.md`.
 
 ### Check 2 — Lint and type check pass
 Run the project's lint and type-check commands now — do not rely on prior session output. Zero errors required. If the project has no lint or type-check configured, note this explicitly.
 
 ### Check 3 — No stale or invalid markers; no committed known issues
 In changed files only:
-- No `TODO`, `FIXME`, or `HACK` markers without an open entry in `.claude/logs/attack.md`
+- No `TODO`, `FIXME`, or `HACK` markers without an open entry in `.claude/knowledge/attack-log.md`
 - No commented-out code blocks
 - No debug instrumentation (`console.log`, `print(`, `debugger`, `binding.pry`, `fmt.Println`)
 - No merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
 
-Cross-reference with `.claude/logs/attack.md`: read all open CRITICAL and HIGH findings. For each one, determine whether it touches any file or symbol in the current diff. If it does, block the commit — a known CRITICAL or HIGH issue may not be silently committed without being resolved or explicitly acknowledged with the user.
+Cross-reference with `.claude/knowledge/attack-log.md`: read all open CRITICAL and HIGH findings. For each one, determine whether it touches any file or symbol in the current diff. If it does, block the commit — a known CRITICAL or HIGH issue may not be silently committed without being resolved or explicitly acknowledged with the user.
 
 ### Check 4 — Specs, architecture, and documentation consistent
 
@@ -90,7 +92,7 @@ If the diff moves, renames, or deletes any file, directory, function, class, mod
 This includes semantic renames: if a function, class, or variable is renamed in the diff, grep the codebase for all callers using the old name and verify they have been updated.
 
 ### Check 6 — Auditor sign-off
-Find the most recent PASS entry in `.claude/logs/audit.md`. Verify both fields against the current working tree:
+Find the most recent PASS entry in `.claude/knowledge/audit-log.md`. Verify both fields against the current working tree:
 
 1. Run `git rev-parse --short HEAD` — must match the entry's `HEAD:` field.
 2. Run `git diff HEAD | shasum -a 256 | cut -c1-8` — must match the entry's `Diff:` field (or both must be `clean` if the working tree is clean).
@@ -98,6 +100,8 @@ Find the most recent PASS entry in `.claude/logs/audit.md`. Verify both fields a
 Both must match. If either differs, the working tree has changed since the audit was run — re-run `/ccbp:audit` before proceeding. If the result is FAIL: resolve all findings and re-run the auditor role before proceeding.
 
 Entries without a `Diff:` field are legacy format — treat as valid only if the working tree is clean (`git status --porcelain` returns nothing).
+
+**Fidelity check:** if the PASS entry contains a `Fidelity:` line, extract it. If any component in the diff is rated NONE or STUB: surface this as a risk in the gate report — not a hard blocker, but it must be visible. DIVERGENT mocks in the diff are a hard blocker (HIGH finding — must be resolved or explicitly accepted before committing).
 
 ### Gate Report
 
@@ -109,6 +113,7 @@ Pre-commit gate:
 [ ] Specs and documentation consistent
 [ ] No stale references
 [ ] Auditor sign-off: PASS — YYYY-MM-DD
+    Fidelity: N THOROUGH · N MODERATE · N SHALLOW · N STUB · N NONE  [risk if NONE or STUB in diff]
 ```
 
 ---
@@ -136,7 +141,7 @@ Propose the message and wait for user confirmation before committing.
 **After commit:**
 1. Run `git log --oneline -1` to verify
 2. State: `Checkpoint <hash> — roll back with git reset --hard <hash>`
-3. Clear `.claude/logs/interaction.md`: replace all content with:
+3. Clear `.claude/knowledge/interaction-log.md`: replace all content with:
 
 ```
 # Interaction Log

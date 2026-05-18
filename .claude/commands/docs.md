@@ -13,7 +13,7 @@ Rebuilds user-facing documentation from `.claude/knowledge/`. Run explicitly aft
 
 ## Step 1 — Map Check
 
-Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp.
+Read `.claude/knowledge/project-map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp.
 - **Absent or older than last commit** → warn "Map may be stale — documentation gaps check may miss recently added components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
 - **Up to date** → use the component list as a coverage checklist: every component in the map should have corresponding documentation.
 

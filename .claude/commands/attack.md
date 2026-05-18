@@ -1,6 +1,6 @@
 # Command: /ccbp:attack
 
-Adversarial pass on a specific artifact or the whole codebase. Two modes — **focused** (named target) or **sweep** (no target given); Claude infers from context. Findings appended to `.claude/logs/attack.md`. CRITICAL findings are hard-blocking: no forward progress until resolved and the attack re-run.
+Adversarial pass on a specific artifact or the whole codebase. Two modes — **focused** (named target) or **sweep** (no target given); Claude infers from context. Findings appended to `.claude/knowledge/attack-log.md`. CRITICAL findings are hard-blocking: no forward progress until resolved and the attack re-run.
 
 This command is intentionally thorough and will take time. Do not skip vectors, summarise findings, or soft-pedal what is found. Slowness is expected and correct.
 
@@ -24,7 +24,10 @@ This command is intentionally thorough and will take time. Do not skip vectors, 
 
 **Focused:** user names a specific artifact (design, ADR, file, function, architecture decision). Run all nine vectors against that artifact only. Proceed to Step 1 immediately.
 
-**Sweep:** no target given. Before proceeding, ask the user to define scope and stopping criterion:
+**Sweep:** no target given. Before proceeding, check `.claude/knowledge/attack-log.md` for a `### Sweep State` block from a previous incomplete sweep:
+
+- **Incomplete sweep found** → read the block; confirm with the user whether to resume (continue from the `remaining` list) or restart (discard prior state and begin fresh). On resume, skip components already marked `covered` and proceed directly to Step 1 against the remaining list.
+- **No prior sweep state** → ask the user to define scope and stopping criterion:
 
 > "Sweep mode needs a scope to be useful. Please specify:
 >
@@ -77,6 +80,7 @@ Every finding must state:
 - **Description** — what is broken or exploitable
 - **Scenario** — a concrete exploit or failure path
 - **Mitigation hint** — names the category of fix, not the implementation. Example: "add rate limiting" is a valid hint; "use a Redis sorted set capped at 100 req/min per user" is a design decision and does not belong here. If the distinction is unclear, err on the side of less specificity.
+- **Spec reference** *(optional)* — the requirement ID, ADR number, domain invariant ID, or architectural invariant ID that this finding violates. Omit if no formal spec artifact exists for the target. Example: `REQ-004`, `ADR-002`, `AINV-001`.
 
 ---
 
@@ -88,7 +92,7 @@ If any `OPEN` CRITICAL findings exist: surface them immediately and stop. State 
 
 ## Step 4 — Append to Log
 
-Append to `.claude/logs/attack.md`. The most recent entry per target is the authoritative state for all finding statuses.
+Append to `.claude/knowledge/attack-log.md`. The most recent entry per target is the authoritative state for all finding statuses.
 
 **Re-run behavior:** before writing the new entry, read the most recent existing entry for the same target. For each previously `OPEN` finding, determine whether it still applies:
 - Still present → carry it forward as `OPEN` (preserve the original ID)
@@ -104,13 +108,31 @@ HEAD: <git short hash — run `git rev-parse --short HEAD`>
 Open: N CRITICAL · N HIGH · N MEDIUM · N LOW
 Resolved this run: N  |  Accepted-risk: N
 
-| ID | Status | Severity | Vector | Description | Scenario | Mitigation hint |
-|----|--------|----------|--------|-------------|----------|-----------------|
-| ATK-NNN | OPEN | ... | ... | ... | ... | ... |
+| ID | Status | Severity | Vector | Description | Scenario | Mitigation hint | Spec ref |
+|----|--------|----------|--------|-------------|----------|-----------------|----------|
+| ATK-NNN | OPEN | ... | ... | ... | ... | ... | <!-- REQ-NNN / ADR-NNN / AINV-NNN or blank --> |
 
 Vectors with no findings: <list>
 Vectors marked N/A: <list with reasons>
 ```
+
+**Sweep mode only** — append a `### Sweep State` block immediately after the findings table. Update this block each session; it is the resume anchor for the next session:
+
+```
+### Sweep State
+
+Scope: <agreed scope>
+Stopping criterion: <agreed criterion>
+Session: N of ? (update total when known)
+
+| Component / area | Risk tier | Status |
+|-----------------|-----------|--------|
+| <name> | HIGH / MEDIUM / LOW | covered / remaining |
+
+Next session: resume from first `remaining` row.
+```
+
+When the sweep completes (all components covered or stopping criterion met), replace `Status` column with `complete` for all rows and add a `Completed: YYYY-MM-DD` line.
 
 IDs are sequential within the log (`ATK-001`, `ATK-002`, …). Use these IDs in `TODO` markers, ADRs, and resolution notes to cross-reference findings.
 

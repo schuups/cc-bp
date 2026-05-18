@@ -6,7 +6,7 @@ Scan for obsolete, orphaned, or stale content. Propose removals or updates — n
 
 ## Step 0 — Map Check
 
-Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp.
+Read `.claude/knowledge/project-map.md`. Extract the datetime from `## Project Map — YYYY-MM-DD HH:MM`; compare against `git log -1 --format=%ci`. The map is stale if its datetime is earlier than the last commit timestamp.
 - **Absent or older than last commit** → warn "Map may be stale — orphan detection and drift checks may miss recently added or removed components. Run `/ccbp:map` to refresh." Continue unless the user opts to refresh first.
 - **Up to date** → use the component list in `map.md` as the canonical inventory for Steps 2–3.
 
@@ -14,16 +14,16 @@ Read `.claude/logs/map.md`. Extract the datetime from `## Project Map — YYYY-M
 
 ## Step 1 — Log Staleness
 
-Read `.claude/logs/interaction.md`:
+Read `.claude/knowledge/interaction-log.md`:
 - Entries describing work now committed to git (compare against `git log`) — propose pruning
 - Entries referencing files or features that no longer exist — flag as stale
 
-Read `.claude/logs/attack.md`:
+Read `.claude/knowledge/attack-log.md`:
 - For each distinct target, find the most recent `## Attack —` entry
 - If that entry contains **no** `OPEN` findings (all rows are `RESOLVED` or `ACCEPTED-RISK`, or the entry has no findings rows): propose removing that entry from `attack.md`; git history preserves it if needed
 - Findings referencing code that has since been changed or deleted but not yet re-attacked — flag for a re-run
 
-Read `.claude/logs/audit.md`:
+Read `.claude/knowledge/audit-log.md`:
 - Open findings referencing code that has since been changed or deleted — flag for review
 
 ---

@@ -32,16 +32,17 @@ What lifecycle position the current work is in.
 - `amendment` — any deliberate change to an established plan: new features, changed requirements, bug fixes, refactoring, or performance work; scoping includes mapping what existing state must adapt
 - `research` — *(optional)* structured knowledge gathering; literature review, technology survey, feasibility assessment
 - `design` — determine *what* to build and *why*: frame the problem, select the approach, produce design artifacts; does not yet decide component structure or technology
-- `experimentation` — *(optional)* hypothesis-driven iteration against a fixed evaluation criterion; for ML, novel algorithms, or R&D where the solution is not yet known
+- `experimentation` — *(optional)* hypothesis-driven iteration against a fixed evaluation criterion; for ML, novel algorithms, or R&D where the solution is not yet known. **Entry:** evaluation criterion must be defined and recorded in `knowledge/experiments.md` before any run begins. At phase start, read `experiments.md` if it exists. **Role:** `researcher` with the relevant domain declination. **Each run:** update `experiments.md` with ID, config, metrics, and outcome before starting the next. **Exit — success:** criterion met → update `knowledge/domain.md` with approach and findings → proceed to `architecture` (with `/attack` pass). **Exit — abandon:** criterion not met after N attempts defined at entry, or evidence criterion is unreachable with current approach → document learnings in `knowledge/domain.md` → return to `design`.
 - `architecture` — decide *how* the chosen approach is structured: components, interfaces, data flows, technology choices; produces ADRs
 - `implementation` — write production code
 - `deployment` — release to production; conservative by default
 - `maintenance` — steady-state work on the live system: reactive (monitoring, incident response) and planned (debt, dependency updates, known bugs)
+- `assess` — *(optional)* structured evaluation of an existing artifact for fitness-for-purpose; covers technology evaluations, post-mortems, and gap analyses where the outcome (change, defer, or accept) is not yet decided. **Entry:** an artifact exists and the question is "is this right / still the right approach?" rather than "what shall I change?". **Role:** `analyst` (primary). **Output:** findings written to `knowledge/domain.md`. **Exit:** → `amendment` (change decided and scoped), → `backlog` (change deferred with activation condition), or document conclusion in `domain.md` and close without further action.
 
 #### Sequence and entry points
-`inception` and `amendment` are alternative entry points. `research` and `experimentation` are optional. Phases are revisitable; state which phase you return to and why. `attacker` and `auditor` are gate roles, not phase-bound.
+`inception` and `amendment` are the primary entry points. `assess` is an additional entry point for fitness-for-purpose evaluation of an existing artifact — it exits to `amendment`, `backlog`, or close, and does not enter the main sequence unless a change is decided. `research` and `experimentation` are optional. Phases are revisitable; state which phase you return to and why. `attacker` and `auditor` are gate roles, not phase-bound.
 
-Read `map.md` at the start of `amendment`, `architecture`, and `implementation` — these phases require knowing what currently exists before deciding what to change or build. For all other phases, read it when scope is `component` or `global`.
+Read `project-map.md` at the start of `amendment`, `architecture`, and `implementation` — these phases require knowing what currently exists before deciding what to change or build. For all other phases, read it when scope is `component` or `global`.
 
 `inception` / `amendment` → [`research`] → `design` → [`experimentation`] → `architecture` → `implementation` → `deployment` → `maintenance`
 
@@ -59,7 +60,7 @@ What reasoning activity is active right now. Activities shift mid-response. Work
 - **`deliver`** — converge on a committed solution.
 
 #### Decision *(event)*
-- **`decide`** — a choice is locked in: one option selected, alternatives explicitly rejected, captured artifact produced (ADR, requirement, or design note). This event is logged to `logs/interaction.md`. Micro-decisions within `execute` (naming, style, local error handling) do not qualify and are not logged.
+- **`decide`** — a choice is locked in: one option selected, alternatives explicitly rejected, captured artifact produced (ADR, requirement, or design note). This event is logged to `knowledge/interaction-log.md`. Micro-decisions within `execute` (naming, style, local error handling) do not qualify and are not logged.
 
 #### Execution
 - **`execute`** — carry out the commitment: code, edits, scripts, docs. Micro-decisions authorized by the prior `decide` need no re-entry; material changes require returning to `develop`. The boundary: **micro** = naming, method decomposition, local error-handling pattern, choice between two equally-specified approaches. **Material** = different library than the ADR named, changed data model shape, altered public API contract, new dependency not mentioned in the ADR, schema change that affects other components.
@@ -74,6 +75,8 @@ What reasoning activity is active right now. Activities shift mid-response. Work
 ### 🎭 Role (behavioral contracts in `.claude/roles/`)
 Exactly one role is active at a time. Role constraints are absolute. When a request spans two roles, complete the first fully, then transition explicitly. Unless stated explicitly, Claude infers the role from intent signals:
 
+**Maintenance mode exemption:** when all three conditions hold — phase is `maintenance`, scope is `local`, no ADR is pending — analyst / implementer / auditor activities may interleave without explicit role transitions. Claude still tracks the active activity and announces shifts, but does not need to complete one role's full output before switching. This exemption does not apply to attacker or architect roles, which always require an explicit transition.
+
 | Role | Infer when… |
 |------|-------------|
 | `analyst` | new topic with no prior design; "what do we need", "what's the problem", "help me understand"; entering `inception` or `amendment` |
@@ -82,6 +85,7 @@ Exactly one role is active at a time. Role constraints are absolute. When a requ
 | `attacker` | "break this", "what could go wrong", "stress-test", "attack" |
 | `auditor` | "is this right?", "check…", "verify…", "does this match the spec" |
 | `implementer` | "implement", "write the code", "build it", "just do it"; entering `execute` activity |
+| `integrator` | "integrate", "end-to-end", "cross-feature", "seam", "boundary"; reviewing how two or more features interact |
 | `documentarian` | "document this", "write the README", "update the docs" |
 
 The role attribute in the state tuple always includes a declination:
@@ -102,7 +106,7 @@ Example tuple role values: `implementer:devops-engineer`, `analyst:generalist`.
 ### 🎯 Scope
 What the current work touches.
 
-`.claude/logs/map.md` is the authoritative picture of what the project *currently contains* — components, their purposes, dependencies, and entry points. It is distinct from `architecture.md` (the designed structure): the map reflects reality as-built. Read it before acting at `component` or `global` scope, and whenever a decision could affect or be affected by what already exists. If absent or older than the last commit, warn and offer to run `/ccbp:map` before proceeding.
+`.claude/knowledge/project-map.md` is the authoritative picture of what the project *currently contains* — components, their purposes, dependencies, and entry points. It is distinct from `architecture.md` (the designed structure): the map reflects reality as-built. Read it before acting at `component` or `global` scope, and whenever a decision could affect or be affected by what already exists. If absent or older than the last commit, warn and offer to run `/ccbp:map` before proceeding.
 
 - `global` — cross-cutting; may affect any component; always read `map.md`
 - `component` — one subsystem, but neighbouring components may be affected; read `map.md`
@@ -144,7 +148,7 @@ Before crossing into `design` and into `implementation`, map intended *and* unin
 ### Activity Transitions
 - `discover` → `define`: exploration is genuinely nonlinear; ambiguity resolved; unintended consequences surfaced.
 - `develop` → `deliver`: solution options compared; named alternatives rejected; a model is on the table.
-- `decide` → `execute`: decision logged to `interaction.md` before any work proceeds.
+- `decide` → `execute`: decision logged to `interaction-log.md` before any work proceeds.
 
 ### Mode Transitions
 - `conversational` → `autonomous` requires: explicit user authorization **and** a fixed evaluation criterion (mandatory for experimentation/auto-research).
@@ -172,8 +176,8 @@ Commands force specific transitions and roles:
 - `/attack` → role `attacker`; activity `discover`
 - `/audit` → role `auditor`
 - `/map` → scope `global`
-- `/checkpoint` → logs a `decide` entry to `interaction.md`
-- `/pause` → captures current state to `interaction.md` for later `/resume`
+- `/checkpoint` → logs a `decide` entry to `interaction-log.md`
+- `/pause` → captures current state to `interaction-log.md` for later `/resume`
 
 ### Implicit Triggers (Claude-Initiated)
 Claude must initiate a transition — and announce it — when:
@@ -198,10 +202,10 @@ Each command is followed by a plain-language description of intent; Claude infer
 |---------|-------------|
 | `/ccbp:onboard` | Run at project start: elicits goals and feature scope from the user, analyses the codebase, iterates until purpose and inventory of funcational requirements are unambiguous, populates `.claude/knowledge/` |
 | `/ccbp:overview` | Read-only situational overview: pending decisions, open questions awaiting user input, and log freshness. Invoked automatically at session start |
-| `/ccbp:map` | Refreshes `map.md` with a complete project map (files, purposes, dependencies, relationships); consult before global-scope changes |
+| `/ccbp:map` | Refreshes `project-map.md` with a complete project map (files, purposes, dependencies, relationships); consult before global-scope changes |
 | `/ccbp:attack` | Adversarial pass on a decision, plan, code, or architecture; focused review (specific target) or systematic sweep — Claude infers from context |
 | `/ccbp:audit` | Verifies references, documentation, and implementation are aligned with decisions and invariants; also finds structural problems: broken links, stale docs, unregistered TODOs |
-| `/ccbp:pause` | Captures session state and ongoing discussion to `interaction.md`; use before a multi-day suspension |
+| `/ccbp:pause` | Captures session state and ongoing discussion to `interaction-log.md`; use before a multi-day suspension |
 | `/ccbp:resume` | Reads session log and brings Claude fully up to speed before acting |
 | `/ccbp:cleanup` | Scans for obsolete information (log entries) and orphaned or stale files. Propose purning findings |
 | `/ccbp:checkpoint` | Verifies delta completeness and records a rollback-safe git commit |
@@ -214,22 +218,35 @@ Each command is followed by a plain-language description of intent; Claude infer
 - `requirements.md` — functional requirements with status: implemented / planned / deferred
 - `domain.md` — domain knowledge, experimentation and research findings
 - `adr/` — architecture decision records
-- `architecture.md` — tech stack, designs, component specifications, invariants
+- `architecture.md` — tech stack, designs, component specifications, invariants, dataset registry
 - `coding-guide.md` — language and framework-specific coding rules
 - `backlog.md` — deferred work
+- `experiments.md` — *(ML/R&D projects)* experiment run log for the `experimentation` phase; Claude-readable summary of hypotheses, configs, metrics, and decisions; raw artifacts (logs, notebooks, plots) live in the project's experiment directory
+- `project-map.md` — project map regenerated by `/ccbp:map`; timestamped staleness baseline for command reliability
+- `interaction-log.md` — gives Claude the intent behind pending git diffs; cleared by `/ccbp:checkpoint`
+- `audit-log.md` — `/ccbp:audit` findings
+- `attack-log.md` — `/ccbp:attack` findings
 
-### Logs `.claude/logs/`
-
-Timestamped staleness baseline for command reliability and drift prevention.
-
-- `interaction.md` — gives Claude the intent behind pending git diffs
-- `audit.md` — `/audit` findings
-- `attack.md` — `/attack` findings
-- `map.md` — project map, regenerated by `/map`
-
-`interaction.md` logging rules:
+`interaction-log.md` logging rules:
 - A **decision** is any event that fires the `decide` activity — a choice that passed through `deliver` (named alternatives compared and one selected) and produced a captured artifact. Log every such event immediately.
 - Exploratory discussion, micro-decisions within `execute`, and agreed-but-not-yet-decided intentions are not logged here; they belong in the conversation until `decide` fires.
 - Changes not yet committed to git must have a corresponding `decide` entry. `/checkpoint` clears the file and records `Previous commit: <hash> — cleared N entries on YYYY-MM-DD HH:MM`.
 - `/pause` appends a session summary.
+
+**Decision tiers — what goes where:**
+
+| Tier | Threshold | Artifact |
+|------|-----------|----------|
+| **ADR** | Affects component structure, public API, cross-component data flow, or technology stack | `.claude/knowledge/adr/NNNN-title.md` + INDEX entry |
+| **Mid-tier decision** | Within a single component; implementation choice that could be revisited without broader impact (e.g. optimizer, preprocessing approach, library pick within a category) | `## Decision — TITLE` entry in `interaction-log.md` — see format below |
+| **Micro-decision** | Naming, method decomposition, local error-handling pattern | Not logged |
+
+Mid-tier decision entry format:
+```
+## Decision — TITLE
+
+Choice: <what was chosen>
+Alternatives: <what was explicitly rejected and why, in one clause each>
+Rationale: <why this choice, in one or two sentences>
+```
 
